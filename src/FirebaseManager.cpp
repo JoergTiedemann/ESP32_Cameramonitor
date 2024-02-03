@@ -65,7 +65,7 @@ void streamCallback(StreamData data)
     Serial.println("PumpenFreigabe:"+String(result.boolValue));
     // das hier ist falsch das muss in der Config DB wierder zurückgesetzt werden 
     // das soll hier nur ein Event zum Reset sein und in der Weboberflaeche soll das nur angezeigt ewrden wenn der Fehler auch aufgetreten ist 
-    dash.data.RuntimeMonitor = result.boolValue;
+    // dash.data.RuntimeMonitor = result.boolValue;
   }
   json->clear();
 }
@@ -75,11 +75,6 @@ FirebaseConfig fbconfig;
 bool bGlobalFirebaseError = false;
 
 extern time_t now;
-extern int m_aktuelleTagesLaufzeit;
-extern int m_aktuelleTagesLaufanzahl;
-extern int m_GesamtEinschaltzeit;
-extern float m_MinTemperatur;
-extern float m_MaxTemperatur;
 
 CFirebaseManager FirebaseManager;
 
@@ -219,432 +214,15 @@ void CFirebaseManager::clearDatabase()
   query.clear();
 }
 
-/*****************************************************************************
- * Anzeige der Tageswerte zu Diagnosezwecken
-*****************************************************************************/
-
-void CFirebaseManager::QueryTageswerteDiag()
-{
-    time_t current_ts = time(nullptr);
-    QueryFilter query;
-    query.orderBy("LoggingTimestamp");
-    query.startAt(0);
-    query.endAt( current_ts);
-    // get only last 8 results
-    query.limitToLast(4);
-    // Get filtered data
-    if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/Tageswerte", query))
-    {
-        FirebaseJson *json = fbdo.to<FirebaseJson *>();
-        // Print all object data
-        size_t len = json->iteratorBegin();
-        FirebaseJson::IteratorValue value;
-        // for (size_t i = 0; i < len; i++)
-        // {
-        //     value = json->valueAt(i);
-        //     Serial_Printf((const char *)FPSTR("Index:%d, Type: %s, Name: %s, Value: %s\n"), i, value.type == FirebaseJson::JSON_OBJECT ? (const char *)FPSTR("object") : (const char *)FPSTR("array"), value.key.c_str(), value.value.c_str());
-        // }
-        // json->iteratorEnd();
-        len = json->iteratorBegin();
-        for (size_t i = 0; i < len/4; i++)
-        {
-            value = json->valueAt(i*4);
-            Serial.printf("index:%d Json Datensatz Name:%s  Value:%s\n",i*4,value.key.c_str(),value.value.c_str());
-            FirebaseJson jsonsub;
-            FirebaseJsonData result;
-            jsonsub.setJsonData(value.value.c_str());
-            jsonsub.get(result,"LoggingTagesLaufzeit");
-             if (result.typeNum == FirebaseJson::JSON_INT )
-              Serial.println("Tageslaufzeit:"+String(result.intValue));
-
-            jsonsub.get(result,"LoggingTimestamp");
-             if (result.typeNum == FirebaseJson::JSON_INT)
-             {
-               Serial.println("Timestamp:"+String(result.intValue));
-               time_t logtime = result.intValue;
-               struct tm * timeinfo;
-               timeinfo = localtime(&logtime);  
-               char buffer [80];
-               strftime (buffer,80,"%H:%M:%S %d.%m.%y:",timeinfo);
-               Serial.println("LogZeit:"+String(buffer));
-             }
-            jsonsub.get(result,"Tageszyklen");
-             if (result.typeNum == FirebaseJson::JSON_INT)
-              Serial.println("Zyklen:"+String(result.intValue));
-
-            // Serial.println("Printed JSONDatatype:"+result.type);
-            // Serial_Printf((const char *)FPSTR("%d, Type: %s, Name: %s, Value: %s\n"), i, value.type == FirebaseJson::JSON_OBJECT ? (const char *)FPSTR("object") : (const char *)FPSTR("array"), value.key.c_str(), value.value.c_str());
-        }
-        json->iteratorEnd();
-        json->clear();
-    }
-    else
-    {
-       Serial.printf("QueryTageswerte Error:%s\n",fbdo.errorReason().c_str());
-       bGlobalFirebaseError = true;
-    }
-
-    // Clear all query parameters
-    query.clear();
-}
 
 
-void CFirebaseManager::QueryTageswerte()
-{
-    // Serial.printf("Query Tageswerte  Heap:%d\n",ESP.getFreeHeap());
-    time_t current_ts = time(nullptr);
-    QueryFilter query;
-    query.orderBy("LoggingTimestamp");
-    query.startAt(0);
-    query.endAt( current_ts);
-    // get only last 8 results
-    query.limitToLast(4);
-    // Get filtered data
-    // if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/pumpenlogging", query))
-    if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/Tageswerte", query))
-        Serial.printf("Set json... ok\n");
-    else
-    {
-       Serial.printf("Set json... %s\n",fbdo.errorReason().c_str());
-       bGlobalFirebaseError = true;
-    }
-    // // Serial.printf("Get json... %s\n", Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/pumpenlogging/1673887984") ? "ok" : fbdo.errorReason().c_str());
-
-    // if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
-    //   printResult(fbdo); // see addons/RTDBHelper.h
-
-    if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/Tageswerte",query)) 
-    {
-        //FirebaseJson object that returned from getJson
-        FirebaseJson &json = fbdo.jsonObject();
-
-        //temporary object to store the data from parsing
-        //this will be reused over and over
-        FirebaseJsonData data;
-
-        //parse data by key or path, the result is in FirebaseJsonData object
-        json.get(data, "/path/to/node");
-        printf("Ergebnis direkt\n");
-        printResult(fbdo); // see addons/RTDBHelper.h
-        printf("Ergebnis des json direkt\n");
-        String jstr;
-        json.toString(jstr);
-        printf("Jsonstring:%s\n",jstr.c_str()); // see addons/RTDBHelper.h
-
-        //or parse the complex nested atrray in nested object
-        //json.get(data, "/path/to/node/[0]/[3]"); //Where [0] is index 0, [3] is index 3
-
-        //parsing ok?
-        if (data.success) 
-        {
-            json.get(data, "/path/to/node");
-            printf("Ergebnis geparsed \n");
-            Serial.println(data.to<String>());
-        }
-    }
-    else
-    {
-        bGlobalFirebaseError = true;
-        Serial.printf("GetJson not ok:%s\n",fbdo.errorReason().c_str());
-    }
-
-    if (Firebase.getArray(fbdo, "/Wasserwerk/Pumpenmonitor/Tageswerte",query)) 
-    {
-        Serial.println("getArray ok");
-        printResult(fbdo); // see addons/RTDBHelper.h
-    }
-    else
-    {
-        bGlobalFirebaseError = true;
-        Serial.printf("GetArray not ok:%s\n",fbdo.errorReason().c_str());
-    }
-
-
-    // Clear all query parameters
-    query.clear();
-    // Serial.printf("Query Tageswerte Ende Heap:%d\n",ESP.getFreeHeap());
-
-}
-
-
-void CFirebaseManager::QueryTest()
-{
-    Serial.printf("Query Filter Heap:%d\n",ESP.getFreeHeap());
-    time_t current_ts = time(nullptr);
-    QueryFilter query;
-    query.orderBy("LoggingTimestamp");
-    query.startAt(0);
-    query.endAt( current_ts);
-    // get only last 8 results
-    query.limitToLast(4);
-    // Get filtered data
-    // if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/pumpenlogging", query))
-    if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/Tageswerte", query))
-        Serial.printf("Set json... ok\n");
-    else
-    {
-       Serial.printf("Set json... %s\n",fbdo.errorReason().c_str());
-       bGlobalFirebaseError = true;
-    }
-    Serial.printf("Get json... %s\n", Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenlogging/1673887984") ? "ok" : fbdo.errorReason().c_str());
-
-    if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
-      printResult(fbdo); // see addons/RTDBHelper.h
-
-    if (Firebase.getJSON(fbdo, "/Wasserwerk/Pumpenmonitor/Tageswerte",query)) 
-    {
-        //FirebaseJson object that returned from getJson
-        FirebaseJson &json = fbdo.jsonObject();
-
-        //temporary object to store the data from parsing
-        //this will be reused over and over
-        FirebaseJsonData data;
-
-        //parse data by key or path, the result is in FirebaseJsonData object
-        json.get(data, "/path/to/node");
-        printf("Ergebnis direkt\n");
-        printResult(fbdo); // see addons/RTDBHelper.h
-        printf("Ergebnis des json direkt\n");
-        String jstr;
-        json.toString(jstr);
-        printf("Jsonstring:%s\n",jstr.c_str()); // see addons/RTDBHelper.h
-
-        //or parse the complex nested atrray in nested object
-        //json.get(data, "/path/to/node/[0]/[3]"); //Where [0] is index 0, [3] is index 3
-
-        //parsing ok?
-        if (data.success) 
-        {
-            json.get(data, "/path/to/node");
-            printf("Ergebnis geparsed \n");
-            Serial.println(data.to<String>());
-        }
-    }
-    else
-    {
-        bGlobalFirebaseError = true;
-        Serial.printf("GetJson not ok:%s\n",fbdo.errorReason().c_str());
-    }
-
-    if (Firebase.getArray(fbdo, "/Wasserwerk/Pumpenlogging",query)) 
-    {
-        Serial.println("getArray ok");
-        printResult(fbdo); // see addons/RTDBHelper.h
-    }
-    else
-    {
-        bGlobalFirebaseError = true;
-        Serial.printf("GetArray not ok:%s\n",fbdo.errorReason().c_str());
-    }
-
-
-    // Clear all query parameters
-    query.clear();
-    Serial.printf("Query Filter Ende Heap:%d\n",ESP.getFreeHeap());
-
-}
-
-void CFirebaseManager::WriteFirebaseTemperatur()
-{
-    String aktLogPath;
-    // Serial.printf("Firebase start Write Heap:%d\n",ESP.getFreeHeap());
-    if ((!configManager.data.ConnectToCloud) || (!Firebase.ready()))
-      return;
-
-
-    // erstmal die aktuelle Temperatur ind den Status wegschreiben
-    if (now == NULL)
-        jsonTemp.set(timePath, String(0));
-    else
-        jsonTemp.set(timePath, String(now));
-
-    jsonTemp.set(tempAkttempPath.c_str(), String(dash.data.Temperatur));
-    if (!Firebase.RTDB.setJSON(&fbdo, TempParentPath.c_str(), &jsonTemp))
-    {
-      Serial.printf("Write Temperatur Fehler: json... %s\n",fbdo.errorReason().c_str());
-      DiagManager.PushDiagData("Write Temperaturstatus Firebase Error: "+fbdo.errorReason());
-      bGlobalFirebaseError = true;
-    }
-
-    // so nun die Tageswerte  in einen separaten Knoten unterhalb von Heizungsmonitor  aber auf keinen Fall in den Status
-    FirebaseJson parent;
-    // Tagesdataum auf 12:00:00 normieren
-    struct tm * timeinfo;
-    timeinfo = localtime(&now);  
-    char buffer [80];
-    strftime (buffer,80,"%H:%M:%S %d.%m.%y:",timeinfo);
-    struct tm t;
-    t.tm_year = timeinfo->tm_year;
-    t.tm_mon = timeinfo->tm_mon;           // Month, 0 - jan
-    t.tm_mday = timeinfo->tm_mday;          // Day of the month
-    t.tm_hour = 12;
-    t.tm_min = 0;
-    t.tm_sec = 0;
-    t.tm_isdst = timeinfo->tm_isdst;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
-    time_t tagestime = mktime(&t);
-
-     // und nun die Tageswerte wegschreiben
-    parent.set(temploggingtimestampPath.c_str(),tagestime);
-    parent.set(temploggingAktTemp.c_str(),dash.data.Temperatur);
-    parent.set(temploggingMinTemp.c_str(),m_MinTemperatur);
-    parent.set(temploggingMaxTemp.c_str(),m_MaxTemperatur);
-
-    aktLogPath = "/Heizung/Heizungsmonitor" + temptageswertePath +"/"+String(tagestime);
-    if (!Firebase.RTDB.setJSON(&fbdo, aktLogPath.c_str(), &parent))
-    {
-      Serial.printf("Write Temperaturtageswerte Fehler: json... %s\n",fbdo.errorReason().c_str());
-      DiagManager.PushDiagData("Write Temperaturtageswerte Firebase Error: "+fbdo.errorReason());
-      // wir versuchen es ein 2. Mal
-      if (!Firebase.RTDB.setJSON(&fbdo, aktLogPath.c_str(), &parent))
-      {
-        Serial.printf("2. Write Temperaturtageswerte Fehler: json... %s\n",fbdo.errorReason().c_str());
-        DiagManager.PushDiagData("2. Write Temperaturtageswerte Firebase Error: "+fbdo.errorReason());
-        bGlobalFirebaseError = true;
-      }
-    }
-    // Serial.printf("Firebase Endwrite Heap:%d\n",ESP.getFreeHeap());
-
-
-
-    // // so nun die Logging Daten in einen separaten Knoten unterhalb von Heizungsmonitor aber auf keinen Fall in den Status
-    parent.set(temploggingtimestampPath.c_str(),now);
-    parent.set(temploggingAktTemp.c_str(),dash.data.Temperatur);
-    aktLogPath = "/Heizung" + temploggingPath +"/"+String(now);
-    // // String sensorPath = "/Wasserwerk/Pumpenmonitor/Pumpenstatus/pumpenlogging";
-    if (!Firebase.RTDB.setJSON(&fbdo, aktLogPath.c_str(), &parent))
-    {
-      Serial.printf("Wrtite Temperaturloggging Fehler: json... %s\n",fbdo.errorReason().c_str());
-      DiagManager.PushDiagData("Wrtite Temperaturloggging  Firebase Error: "+fbdo.errorReason());
-      bGlobalFirebaseError = true;
-    }
-}
-
-
-
-void CFirebaseManager::WriteFirebasePumpenzustand(bool bWithLogging,bool bCalcWerte)
-{
-    String aktLogPath;
-    // Serial.printf("Firebase start Write Heap:%d\n",ESP.getFreeHeap());
-    if ((!configManager.data.ConnectToCloud) || (!Firebase.ready()))
-      return;
-
-    // if (!m_httpConnected)
-    // {
-    //     Serial.printf("Write Pumpenstatus httpConnection Lost\n");
-    //     DiagManager.PushDiagData("Write Pumpenstatus httpConnection Lost");
-    //     bGlobalFirebaseError = true;
-    //     return;
-    // }
-
-
-    // erstmal den Pumpenzustand wegschreiben
-    if (now == NULL)
-        json.set(timePath, String(0));
-    else
-        json.set(timePath, String(now));
-    long aktTagesLaufzeit = m_aktuelleTagesLaufzeit;
-    long aktTagesLaufAnzahl = m_aktuelleTagesLaufanzahl;
-    if (bCalcWerte)
-    {
-      aktTagesLaufzeit = m_aktuelleTagesLaufzeit+dash.data.aktuelleLaufzeit;
-      if (dash.data.aktuelleLaufzeit > 0)
-        aktTagesLaufAnzahl = m_aktuelleTagesLaufanzahl+1;
-    }
-
-    json.set(pummpenabschalterrorPath.c_str(), String(dash.data.PumpenAbschaltError));
-    json.set(pummpenruntimemonitorPath.c_str(), String(dash.data.RuntimeMonitor));
-    json.set(pummpenzustandPath.c_str(), String(dash.data.Pumpenzustand));
-    json.set(pummpenaktuellelaufzeitPath.c_str(), String(dash.data.aktuelleLaufzeit));
-    json.set(pummpentageslaufzeitPath.c_str(), String(aktTagesLaufzeit));
-    if (!Firebase.RTDB.setJSON(&fbdo, parentPath.c_str(), &json))
-    {
-      Serial.printf("Write Pumpenstatus Fehler: json... %s\n",fbdo.errorReason().c_str());
-      DiagManager.PushDiagData("Write Pumpenstatus Firebase Error: "+fbdo.errorReason());
-      bGlobalFirebaseError = true;
-    }
-
-    // so nun die Tageswerte  in einen separaten Knoten unterhalb von Pumpenmonitor aber auf keinen Fall in den Status
-    FirebaseJson parent;
-    // Tagesdataum auf 12:00:00 normieren
-    struct tm * timeinfo;
-    timeinfo = localtime(&now);  
-    char buffer [80];
-    strftime (buffer,80,"%H:%M:%S %d.%m.%y:",timeinfo);
-    // Serial.printf(PSTR("Protokollzeit jetzt:%s Wert:%d\n"),buffer,now);
-    // Serial.printf(PSTR("Jahr:%d Monat:%d Tag:%d\n"),timeinfo->tm_year,timeinfo->tm_mon,timeinfo->tm_mday);
-    struct tm t;
-    t.tm_year = timeinfo->tm_year;
-    t.tm_mon = timeinfo->tm_mon;           // Month, 0 - jan
-    t.tm_mday = timeinfo->tm_mday;          // Day of the month
-    t.tm_hour = 12;
-    t.tm_min = 0;
-    t.tm_sec = 0;
-    t.tm_isdst = timeinfo->tm_isdst;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
-    time_t tagestime = mktime(&t);
-
-    // dies zur Diagnose
-    // struct tm * prottimeinfo;
-    // prottimeinfo = localtime(&tagestime);  
-    // strftime (buffer,80,"%H:%M:%S %d.%m.%y:",prottimeinfo);
-    // Serial.printf(PSTR("Protokollzeit normiert:%s Wert:%d\n"),buffer,tagestime);
-
-    // und nun die Tageswerte wegschreiben
-    parent.set(pummpenloggingtimestampPath.c_str(),tagestime);
-    parent.set(pummpenloggingtageslaufzeitPath.c_str(),aktTagesLaufzeit);
-    parent.set(pummpenloggingtageszyklenPath.c_str(),aktTagesLaufAnzahl);
-    aktLogPath = "/Wasserwerk/Pumpenmonitor" + pummpentageeswertePath +"/"+String(tagestime);
-    if (!Firebase.RTDB.setJSON(&fbdo, aktLogPath.c_str(), &parent))
-    {
-      Serial.printf("Write Pumpentageswerte Fehler: json... %s\n",fbdo.errorReason().c_str());
-      DiagManager.PushDiagData("Write Pumpentageswerte Firebase Error: "+fbdo.errorReason());
-      // wir versuchen es ein 2. Mal
-      if (!Firebase.RTDB.setJSON(&fbdo, aktLogPath.c_str(), &parent))
-      {
-        Serial.printf("2. Write Pumpentageswerte Fehler: json... %s\n",fbdo.errorReason().c_str());
-        DiagManager.PushDiagData("2. Write Pumpentageswerte Firebase Error: "+fbdo.errorReason());
-        bGlobalFirebaseError = true;
-      }
-    }
-    // Serial.printf("Firebase Endwrite Heap:%d\n",ESP.getFreeHeap());
-
- pummpenzustandPath = "/pumpenzustand";
-    pummpenabschalterrorPath = "/PumpenAbschaltError";
-    pummpenruntimemonitorPath = "/RuntimeMonitor";
-    pummpenaktuellelaufzeitPath = "/aktuelleLaufzeit";
-    pummpentageslaufzeitPath = "/TagesLaufzeit";
-    pummpenloggingtageszyklenPath = "/Tageszyklen";
-    pummpenloggingPath = "/Pumpenlogging";
-    pummpenloggingtageslaufzeitPath = "LoggingTagesLaufzeit";
-    pummpenloggingtimestampPath = "LoggingTimestamp";
-    pummpentageeswertePath = "/Tageswerte";
-
-
-    // // so nun die Logging Daten in einen separaten Knoten unterhalb von Pumpenmonitor aber auf keinen Fall in den Status
-    if (bWithLogging)
-    {
-      parent.set(pummpenloggingtimestampPath.c_str(),now);
-      parent.set(pummpenloggingtageslaufzeitPath.c_str(),m_aktuelleTagesLaufzeit+dash.data.aktuelleLaufzeit);
-      aktLogPath = "/Wasserwerk" + pummpenloggingPath +"/"+String(now);
-      // // String sensorPath = "/Wasserwerk/Pumpenmonitor/Pumpenstatus/pumpenlogging";
-      if (!Firebase.RTDB.setJSON(&fbdo, aktLogPath.c_str(), &parent))
-      {
-        Serial.printf("Wrtite Pumpenloggging Fehler: json... %s\n",fbdo.errorReason().c_str());
-        DiagManager.PushDiagData("Wrtite Pumpenloggging  Firebase Error: "+fbdo.errorReason());
-        bGlobalFirebaseError = true;
-      }
-    }
-    // Serial.printf("Firebase Endwrite Heap:%d\n",ESP.getFreeHeap());
-    //clearDatabase();
-    // if (bWithQuery)
-    //   QueryTest();
-}
 
 void CFirebaseManager::SendTopicTestMessage()
 {
     DiagManager.PushDiagData("Testnachricht an alle senden");
     Serial.println("SendTopic Message");
 
-    fbdo.fcm.setNotifyMessage("Meldung", "Die Wasserpumpe lief heute seit: " + String(m_aktuelleTagesLaufzeit) + " Sekunden");
+    fbdo.fcm.setNotifyMessage("Meldung", "Die Wasserpumpe lief heute");
     fbdo.fcm.setTopic("Pumpe");
 
     FirebaseJson msg;
@@ -668,7 +246,7 @@ void CFirebaseManager::SendTopicAlarmMessage()
     Serial.println("SendTopic Alarm Message");
     DiagManager.PushDiagData("Alarmnachricht senden weil Pumpe abgeschaltet wurde");
 
-    fbdo.fcm.setNotifyMessage("Alarmnachricht", "Die Wasserpumpe wurde notabgeschaltet. Sie läuft aktuell seid: " + String(dash.data.aktuelleLaufzeit) + " Sekunden");
+    fbdo.fcm.setNotifyMessage("Alarmnachricht", "Die Wasserpumpe wurde notabgeschaltet. Sie läuft aktuell seid:");
     fbdo.fcm.setTopic("Pumpe");
 
     FirebaseJson msg;
@@ -693,7 +271,7 @@ void CFirebaseManager::SendTopicWarnMessage()
     Serial.println("SendTopic Warn  Message");
     DiagManager.PushDiagData("Warnnachricht senden weil Pumpe lange läuft");
 
-    fbdo.fcm.setNotifyMessage("Warnmeldung", "Die Wasserpumpe läuft lange. Sie läuft aktuell seid: " + String(m_GesamtEinschaltzeit) + " Sekunden");
+    fbdo.fcm.setNotifyMessage("Warnmeldung", "Die Wasserpumpe läuft lange. Sie läuft aktuell seid:");
     fbdo.fcm.setTopic("Pumpe");
 
     FirebaseJson msg;
@@ -986,44 +564,18 @@ if (bGlobalFirebaseError)
     }
   }
   
-  // wenn die Temperatur um 1 Grad gewechselt hat  dann schreiben wir die Temperaturund wir loggen einen Eintrag ins Temperaturprotokoll 
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && 
-      (m_bTempLogging) &&
-      (millis() - sendTempPrevMillis > configManager.data.FirebaseUpdateIntervall  || sendTempPrevMillis == 0)
-     ){
-        sendTempPrevMillis = millis();
-        //  Serial.println("WriteTemperaturZustand");
-        DiagManager.PushDiagData("Write Temperaturstatus Wert: "+String(dash.data.Temperatur));
-        WriteFirebaseTemperatur();
-        m_bTempLogging = false;
-     }
-  
 
-  // wenn die Pumpe eingeschaltet ist dann schreiben wir den Pumpenzustand und wir loggen einen Eintrag ins Lauzeitprotokoll im festgelegten Zeitintervall
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && 
-      (dash.data.Pumpenzustand) &&
-      (millis() - sendDataPrevMillis > configManager.data.FirebaseUpdateIntervall  || sendDataPrevMillis == 0)
-     ){
-         sendDataPrevMillis = millis();
-        //  Serial.println("Refresh WriteFirebasePumpenzustand Begin");
-         WriteFirebasePumpenzustand(true,true);
-        //  Serial.println("Refresh WriteFirebasePumpenzustand Ende");
-     }
+  // // wenn die Pumpe eingeschaltet ist dann schreiben wir den Pumpenzustand und wir loggen einen Eintrag ins Lauzeitprotokoll im festgelegten Zeitintervall
+  // if ((configManager.data.ConnectToCloud) && Firebase.ready() && 
+  //     (dash.data.Pumpenzustand) &&
+  //     (millis() - sendDataPrevMillis > configManager.data.FirebaseUpdateIntervall  || sendDataPrevMillis == 0)
+  //    ){
+  //        sendDataPrevMillis = millis();
+  //       //  Serial.println("Refresh WriteFirebasePumpenzustand Begin");
+  //        WriteFirebasePumpenzustand(true,true);
+  //       //  Serial.println("Refresh WriteFirebasePumpenzustand Ende");
+  //    }
   
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && 
-      (dash.data.Pumpenzustand) &&
-      (dash.data.PumpenAbschaltError == false) &&
-      (m_GesamtEinschaltzeit > configManager.data.WarnOnTime)
-     )
-     {
-       if (!m_bCloundWarnmeldung)
-        {
-            m_bCloundWarnmeldung = true;
-            SendTopicWarnMessage();
-        }
-     }
-  if (!dash.data.Pumpenzustand)
-      m_bCloundWarnmeldung = false;
 
   // dies hier ist nur zum Test um was abzufragen  
   // if ((configManager.data.ConnectToCloud) && Firebase.ready() && (dash.data.QueryTest)) {
@@ -1035,29 +587,6 @@ if (bGlobalFirebaseError)
         dash.data.MessageTest = false;
     }
 
-
-  // RuntimeMonitor ("Laufzeitueberwachung aktivieren" wurde an oder ausgeschaltet
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && (dash.data.RuntimeMonitor != m_CloudRuntimeMonitor)) {
-        m_CloudRuntimeMonitor = dash.data.RuntimeMonitor;
-          WriteFirebasePumpenzustand();
-        // QueryTageswerte();
-    }
-
-  // AbschaltError hat gewechselt
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && (dash.data.PumpenAbschaltError != m_CloudAbschaltError)) {
-        m_CloudAbschaltError = dash.data.PumpenAbschaltError;
-          WriteFirebasePumpenzustand();
-  }
-
-  // Notabschaltung hat ausgeloest
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && (dash.data.PumpenAbschaltError) && (!m_bNotabschaltNachrichtgesendet)) {
-        SendTopicAlarmMessage();
-        m_bNotabschaltNachrichtgesendet = true;
-  }
-  // Notabschaltung wieder freigegeben ?
-  if ((configManager.data.ConnectToCloud) && Firebase.ready() && (!dash.data.PumpenAbschaltError) && (m_bNotabschaltNachrichtgesendet)) {
-        m_bNotabschaltNachrichtgesendet = false;
-  }
 
    
   if ((configManager.data.ConnectToCloud) && (Firebase.ready()))

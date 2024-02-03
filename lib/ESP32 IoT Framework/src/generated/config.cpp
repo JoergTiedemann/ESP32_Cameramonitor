@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include "config.h"
 
-uint32_t configVersion = 1525968926; //generated identifier to compare config with EEPROM
+uint32_t configVersion = 270286793; //generated identifier to compare config with EEPROM
 
 const configData defaults PROGMEM =
 {
-	"Pumpen-Monitor",
-	"V4.1",
+	"Camera-Monitor",
+	"V0.1",
 	false,
 	false,
 	true,
@@ -20,5 +20,5 @@ const configData defaults PROGMEM =
 	"",
 	false,
 	false,
-	"http://www.bierhoehle.de/pumpe.bin"
+	"http://www.bierhoehle.de/camera.bin"
 };

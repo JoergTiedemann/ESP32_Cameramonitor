@@ -14,14 +14,9 @@ public :
     void loop();
     void firebaseSignIn();
     void clearDatabase();
-    void QueryTest();
-    void QueryTageswerte();
-    void QueryTageswerteDiag();
     void SendTopicTestMessage();
     void SendTopicAlarmMessage();
     void SendTopicWarnMessage();
-    void WriteFirebasePumpenzustand(bool bWithLogging = false,bool bCalcWerte = false);
-    void WriteFirebaseTemperatur();
     void BeendeStream();
     void StarteStream();
 

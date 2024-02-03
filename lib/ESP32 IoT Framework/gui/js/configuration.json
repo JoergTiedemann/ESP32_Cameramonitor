@@ -4,7 +4,7 @@
         "label": "Project Name",
         "type": "char",
         "length": 32,
-        "value": "Pumpen-Monitor",
+        "value": "Camera-Monitor",
         "hidden": true
     },
     {
@@ -12,7 +12,7 @@
         "label": "Projektversion",
         "type": "char",
         "length": 32,
-        "value": "V4.1",
+        "value": "V0.1",
         "hidden": true
     },
     {
@@ -114,6 +114,6 @@
         "label": "Firmware URL  (http://www...",
         "type": "char",
         "length": 60,
-        "value": "http://www.bierhoehle.de/pumpe.bin"
+        "value": "http://www.bierhoehle.de/camera.bin"
     }
 ]

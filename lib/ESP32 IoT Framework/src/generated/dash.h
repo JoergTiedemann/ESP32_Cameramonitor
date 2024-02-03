@@ -3,15 +3,8 @@
 
 struct dashboardData
 {
-	uint16_t aktuelleLaufzeit;
-	float Temperatur;
-	bool Pumpenzustand;
-	bool PumpenAbschaltError;
-	bool RuntimeMonitor;
-	bool Testschalter;
-	bool QueryTest;
+	bool TakePicture;
 	bool MessageTest;
-	uint16_t AnzeigeinMin;
 };
 
 #endif
