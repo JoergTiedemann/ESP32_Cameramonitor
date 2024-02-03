@@ -1,0 +1,119 @@
+[
+    {
+        "name": "projectName",
+        "label": "Project Name",
+        "type": "char",
+        "length": 32,
+        "value": "Pumpen-Monitor",
+        "hidden": true
+    },
+    {
+        "name": "projectVersion",
+        "label": "Projektversion",
+        "type": "char",
+        "length": 32,
+        "value": "V4.1",
+        "hidden": true
+    },
+    {
+        "name": "ShowFilePage",        
+        "type": "bool",
+        "value": false,
+        "hidden": true
+    },
+    {
+        "name": "ShowFileFirmwarePage",        
+        "type": "bool",
+        "value": false,
+        "hidden": true
+    },
+    {
+        "name": "ShowWebFirmwarePage",        
+        "type": "bool",
+        "value": true,
+        "hidden": true
+    },
+    {
+        "name": "ShowDiagnosePage",        
+        "type": "bool",
+        "value": true,
+        "hidden": true
+    },
+    {
+        "name": "language",        
+        "type": "char",
+        "length": 3,
+        "value": "de",
+        "hidden": true
+    },
+    {
+        "type": "header",
+        "text": "Pumpenüberwachung"
+    },
+    {
+        "name": "MaxOnTime",
+        "label": "max Einschaltzeit [Sek]",
+        "type": "uint16_t",
+        "value": 300
+    },
+    {
+        "name": "WarnOnTime",
+        "label": "max Einschaltzeit bis Warnung [Sek]",
+        "type": "uint16_t",
+        "value": 120
+    },
+    {
+        "name": "PumpeStatusEinLevel",
+        "label": "Schwellenwert Pumpe Ein",
+        "type": "uint16_t",
+        "value": 200
+    },
+    {
+        "name": "ZeitCheckInit",        
+        "label": "Ueberwachung nach Neustart Ein",
+        "type": "bool",
+        "value": true
+    },
+    {
+        "type": "header",
+        "text": "Firebase Cloud Verbindung"
+    },
+    {
+        "type": "separator"
+    },
+    {
+        "name": "FirebaseUpdateIntervall",
+        "label": "FirebaseUpdateIntervall [ms]",
+        "type": "uint16_t",
+        "value": 15000
+    },
+    {
+        "name": "FirebasePassword",
+        "label": "Firebase Passwort",
+        "type": "char",
+        "length": 60,
+        "value": ""
+    },
+   {
+        "name": "ConnectToCloud",        
+        "label": "mit Firebase-Cloud verbinden",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "UseStream",        
+        "label": "benutze Firebase Read-Stream",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "type": "separator"
+    },
+    {
+        "name": "FirmwareURL",
+        "label": "Firmware URL  (http://www...",
+        "type": "char",
+        "length": 60,
+        "value": "http://www.bierhoehle.de/pumpe.bin"
+    }
+]
