@@ -6,6 +6,7 @@
 #include "soc/soc.h"           // Disable brownour problems
 #include "soc/rtc_cntl_reg.h"  // Disable brownour problems
 #include "driver/rtc_io.h"
+#include "DiagManager.h"
 
 // define the number of bytes you want to access
 #define EEPROM_SIZE 1
@@ -78,6 +79,7 @@ void CCameraManager::begin()
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; 
+  config.grab_mode = CAMERA_GRAB_LATEST; 
   
   if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
@@ -141,6 +143,7 @@ String CCameraManager::TakePicture()
         Serial.printf("Start schreiben %d Byte\n",fb->len);
         file.write(fb->buf, fb->len); // payload (image), payload length
         Serial.printf("Saved file to path: %s\n", path.c_str());
+        DiagManager.PushDiagData("Foto aufnehmen: %s",path.c_str());
     }
     file.close();
     esp_camera_fb_return(fb); 
