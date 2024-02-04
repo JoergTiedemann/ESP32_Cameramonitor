@@ -27,7 +27,7 @@
 #include "OTAManager.h"
 
 
-#include <FirebaseESP32.h>
+#include <Firebase_ESP_Client.h>
 #include "FirebaseManager.h"
 #include "CameraManager.h"
 

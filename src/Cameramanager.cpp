@@ -95,6 +95,9 @@ void CCameraManager::begin()
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+
+  // Init SD Card
+  InitMicroSDCard();
   
   Serial.println("This will never be printed");
 }
@@ -126,7 +129,7 @@ void CCameraManager::TakePicture()
 
     // Path where new picture will be saved in SD Card
     String path = getPictureFilename();
-    InitMicroSDCard();
+    // InitMicroSDCard();
     fs::FS &fs = SD_MMC; 
     Serial.printf("Picture file name: %s\n", path.c_str());
     
@@ -141,7 +144,7 @@ void CCameraManager::TakePicture()
     }
     file.close();
     esp_camera_fb_return(fb); 
-    DeInitMicroSDCard();
+    // DeInitMicroSDCard();
     
     // Turns off the ESP32-CAM white on-board LED (flash) connected to GPIO 4
     // pinMode(4, OUTPUT);

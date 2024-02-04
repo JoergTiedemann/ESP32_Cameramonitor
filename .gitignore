@@ -4,7 +4,7 @@
 .pio/libdeps/esp32dev/ArduinoJson/examples
 .pio/libdeps/esp32dev/AsyncTCP/examples
 .pio/libdeps/esp32dev/ESP Asynce Webserver/examples
-.pio/libdeps/esp32dev/Firebase ESP32 Client/examples
+.pio/libdeps/esp32dev/Firebase Arduino Client Library for ESP8266 and ESP32/examples
 .pio/libdeps/esp32dev/LittleFS_ESP32/examples
 .pio/libdeps/esp32dev/TFT_ESPI/examples
 .pio/libdeps/esp32dev/TFT_ESPI/tools

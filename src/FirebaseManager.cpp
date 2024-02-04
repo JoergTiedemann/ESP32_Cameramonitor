@@ -1,6 +1,6 @@
 
 #include <WiFi.h>
-#include <FirebaseESP32.h>
+#include <Firebase_ESP_Client.h>
 
 #include "FirebaseManager.h"
 //Provide the token generation process info.
@@ -33,7 +33,7 @@ FirebaseData fbdo;
 //FirebaseData streamfbdo;
 FirebaseData stream;
 // extern void streamCallback(StreamData data);
-void streamCallback(StreamData data)
+void streamCallback(FirebaseStream data)
 {
   // Serial.printf("stream path, %s\nevent path, %s\ndata type, %s\nevent type, %s\n\n",
   //               data.streamPath().c_str(),
@@ -178,7 +178,7 @@ void CFirebaseManager::clearDatabase()
   //limit the return result only last 8 data.
   query.orderBy("LoggingTimestamp").startAt(0).endAt(lastTS).limitToLast(8);
 
-  if (Firebase.getJSON(fbdo, sensorPath, query))
+  if (Firebase.RTDB.getJSON(&fbdo, sensorPath, &query))
   {
     Serial.printf("datatype:%s length:%d String:%s\n",fbdo.dataType(),fbdo.jsonString().length(),fbdo.jsonString().c_str());
   
@@ -221,22 +221,23 @@ void CFirebaseManager::SendTopicTestMessage()
 {
     DiagManager.PushDiagData("Testnachricht an alle senden");
     Serial.println("SendTopic Message");
+    
 
-    fbdo.fcm.setNotifyMessage("Meldung", "Die Wasserpumpe lief heute");
-    fbdo.fcm.setTopic("Pumpe");
+    // fbdo.fcm.setNotifyMessage("Meldung", "Die Wasserpumpe lief heute");
+    // fbdo.fcm.setTopic("Pumpe");
 
-    FirebaseJson msg;
-    msg.add("myData", m_count);
+    // FirebaseJson msg;
+    // msg.add("myData", m_count);
 
-    fbdo.fcm.setDataMessage(msg.raw());
+    // fbdo.fcm.setDataMessage(msg.raw());
 
-    // Firebase.broadcastMessage(fbdo)
-    // Firebase.sendTopic(fbdo)
-    // Serial.printf("Send message... %s\n", Firebase.sendMessage(fbdo, 0) ? "ok" : fbdo.errorReason().c_str());
-    Serial.printf("Send top... %s\n", Firebase.sendTopic(fbdo) ? "ok" : fbdo.errorReason().c_str());
+    // // Firebase.broadcastMessage(fbdo)
+    // // Firebase.sendTopic(fbdo)
+    // // Serial.printf("Send message... %s\n", Firebase.sendMessage(fbdo, 0) ? "ok" : fbdo.errorReason().c_str());
+    // Serial.printf("Send top... %s\n", Firebase.sendTopic(fbdo) ? "ok" : fbdo.errorReason().c_str());
 
-    if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
-        Serial.println(fbdo.fcm.getSendResult());
+    // if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
+    //     Serial.println(fbdo.fcm.getSendResult());
 
     Serial.println();
 }
@@ -246,21 +247,21 @@ void CFirebaseManager::SendTopicAlarmMessage()
     Serial.println("SendTopic Alarm Message");
     DiagManager.PushDiagData("Alarmnachricht senden weil Pumpe abgeschaltet wurde");
 
-    fbdo.fcm.setNotifyMessage("Alarmnachricht", "Die Wasserpumpe wurde notabgeschaltet. Sie läuft aktuell seid:");
-    fbdo.fcm.setTopic("Pumpe");
+    // fbdo.fcm.setNotifyMessage("Alarmnachricht", "Die Wasserpumpe wurde notabgeschaltet. Sie läuft aktuell seid:");
+    // fbdo.fcm.setTopic("Pumpe");
 
-    FirebaseJson msg;
-    msg.add("myData", m_count);
+    // FirebaseJson msg;
+    // msg.add("myData", m_count);
 
-    fbdo.fcm.setDataMessage(msg.raw());
+    // fbdo.fcm.setDataMessage(msg.raw());
 
-    // Firebase.broadcastMessage(fbdo)
-    // Firebase.sendTopic(fbdo)
-    // Serial.printf("Send message... %s\n", Firebase.sendMessage(fbdo, 0) ? "ok" : fbdo.errorReason().c_str());
-    Serial.printf("Send top... %s\n", Firebase.sendTopic(fbdo) ? "ok" : fbdo.errorReason().c_str());
+    // // Firebase.broadcastMessage(fbdo)
+    // // Firebase.sendTopic(fbdo)
+    // // Serial.printf("Send message... %s\n", Firebase.sendMessage(fbdo, 0) ? "ok" : fbdo.errorReason().c_str());
+    // Serial.printf("Send top... %s\n", Firebase.sendTopic(fbdo) ? "ok" : fbdo.errorReason().c_str());
 
-    if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
-        Serial.println(fbdo.fcm.getSendResult());
+    // if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
+    //     Serial.println(fbdo.fcm.getSendResult());
 
     Serial.println();
 }
@@ -271,29 +272,29 @@ void CFirebaseManager::SendTopicWarnMessage()
     Serial.println("SendTopic Warn  Message");
     DiagManager.PushDiagData("Warnnachricht senden weil Pumpe lange läuft");
 
-    fbdo.fcm.setNotifyMessage("Warnmeldung", "Die Wasserpumpe läuft lange. Sie läuft aktuell seid:");
-    fbdo.fcm.setTopic("Pumpe");
+    // fbdo.fcm.setNotifyMessage("Warnmeldung", "Die Wasserpumpe läuft lange. Sie läuft aktuell seid:");
+    // fbdo.fcm.setTopic("Pumpe");
 
-    FirebaseJson msg;
-    msg.add("myData", m_count);
+    // FirebaseJson msg;
+    // msg.add("myData", m_count);
 
-    fbdo.fcm.setDataMessage(msg.raw());
+    // fbdo.fcm.setDataMessage(msg.raw());
 
-    // Firebase.broadcastMessage(fbdo)
-    // Firebase.sendTopic(fbdo)
-    // Serial.printf("Send message... %s\n", Firebase.sendMessage(fbdo, 0) ? "ok" : fbdo.errorReason().c_str());
-    Serial.printf("Send top... %s\n", Firebase.sendTopic(fbdo) ? "ok" : fbdo.errorReason().c_str());
+    // // Firebase.broadcastMessage(fbdo)
+    // // Firebase.sendTopic(fbdo)
+    // // Serial.printf("Send message... %s\n", Firebase.sendMessage(fbdo, 0) ? "ok" : fbdo.errorReason().c_str());
+    // Serial.printf("Send top... %s\n", Firebase.sendTopic(fbdo) ? "ok" : fbdo.errorReason().c_str());
 
-    if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
-        Serial.println(fbdo.fcm.getSendResult());
+    // if (fbdo.httpCode() == FIREBASE_ERROR_HTTP_CODE_OK)
+    //     Serial.println(fbdo.fcm.getSendResult());
 
     Serial.println();
 }
 
 void CFirebaseManager::BeendeStream()
 {
-    Firebase.endStream(stream);
-    Firebase.removeStreamCallback(stream);
+    Firebase.RTDB.endStream(&fbdo);
+    Firebase.RTDB.removeStreamCallback(&fbdo);
     // Firebase.end(stream); 
     stream.clear();   
     m_bStreamIsRunning = false;
@@ -304,9 +305,9 @@ void CFirebaseManager::BeendeStream()
 void CFirebaseManager::StarteStream()
 {
     // und nun das Zeug für den Firebase Stream um benachrichtigt zu werden wenn Daten von der Webanwendung geaendert wurden
-    if (!Firebase.beginStream(stream, streamPath))
+    if (!Firebase.RTDB.beginStream(&stream, streamPath))
       Serial.printf("Stream begin error, %s\n\n", stream.errorReason().c_str());
-    Firebase.setStreamCallback(stream, streamCallback, streamTimeoutCallback);
+    Firebase.RTDB.setStreamCallback(&stream, streamCallback, streamTimeoutCallback);
     m_bStreamIsRunning = true;
     // You can use TCP KeepAlive For more reliable stream operation and tracking the server connection status, please read this for detail.
     // https://github.com/mobizt/Firebase-ESP32#enable-tcp-keepalive-for-reliable-http-streaming
@@ -438,9 +439,9 @@ void CFirebaseManager::begin()
 
     // so hier das Zeug fuer das Firebase Messaging
     // required for legacy HTTP API
-    fbdo.fcm.begin(FIREBASE_FCM_SERVER_KEY);
-    fbdo.fcm.setPriority("high");
-    fbdo.fcm.setTimeToLive(1000);
+    // fbdo.fcm.begin(FIREBASE_FCM_SERVER_KEY);
+    // fbdo.fcm.setPriority("high");
+    // fbdo.fcm.setTimeToLive(1000);
     // You can use TCP KeepAlive For more reliable stream operation and tracking the server connection status, please read this for detail.
     // https://github.com/mobizt/Firebase-ESP32#enable-tcp-keepalive-for-reliable-http-streaming
     fbdo.keepAlive(5, 5, 1);
@@ -614,6 +615,33 @@ if (bGlobalFirebaseError)
       }
     }
   }
- 
+}
 
+void fcsUploadCallback(FCS_UploadStatusInfo info)
+{
+    if (info.status == fb_esp_fcs_upload_status_init){
+        Serial.printf("Uploading file %s (%d) to %s\n", info.localFileName.c_str(), info.fileSize, info.remoteFileName.c_str());
+    }
+    else if (info.status == fb_esp_fcs_upload_status_upload)
+    {
+        Serial.printf("Uploaded %d%s, Elapsed time %d ms\n", (int)info.progress, "%", info.elapsedTime);
+    }
+    else if (info.status == fb_esp_fcs_upload_status_complete)
+    {
+        Serial.println("Upload completed\n");
+        FileMetaInfo meta = fbdo.metaData();
+        Serial.printf("Name: %s\n", meta.name.c_str());
+        Serial.printf("Bucket: %s\n", meta.bucket.c_str());
+        Serial.printf("contentType: %s\n", meta.contentType.c_str());
+        Serial.printf("Size: %d\n", meta.size);
+        Serial.printf("Generation: %lu\n", meta.generation);
+        Serial.printf("Metageneration: %lu\n", meta.metageneration);
+        Serial.printf("ETag: %s\n", meta.etag.c_str());
+        Serial.printf("CRC32: %s\n", meta.crc32.c_str());
+        Serial.printf("Tokens: %s\n", meta.downloadTokens.c_str());
+        Serial.printf("Download URL: %s\n\n", fbdo.downloadURL().c_str());
+    }
+    else if (info.status == fb_esp_fcs_upload_status_error){
+        Serial.printf("Upload failed, %s\n", info.errorMsg.c_str());
+    }
 }
