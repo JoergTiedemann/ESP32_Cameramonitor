@@ -1,0 +1,23 @@
+[
+
+    {
+        "name": "TakePicture",
+        "label": "Foto machen",
+        "type": "bool",
+        "hidden":false,
+        "direction": "control",
+        "buttontextOn": "Aufnehmen",
+        "display": "button"
+    },
+
+    {
+        "name": "MessageTest",
+        "label": "Testnachricht senden",
+        "type": "bool",
+        "hidden":false,
+        "direction": "control",
+        "buttontextOn": "Senden",
+        "display": "button"
+    }
+ 
+]
