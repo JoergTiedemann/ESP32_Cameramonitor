@@ -19,6 +19,7 @@ public :
     void SendTopicWarnMessage();
     void BeendeStream();
     void StarteStream();
+    void UploadPicture(String filename);
 
     FirebaseJson json;
     FirebaseJson jsonTemp;

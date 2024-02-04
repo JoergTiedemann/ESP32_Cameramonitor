@@ -6,7 +6,7 @@
 #include "soc/soc.h"           // Disable brownour problems
 #include "soc/rtc_cntl_reg.h"  // Disable brownour problems
 #include "driver/rtc_io.h"
-#include <EEPROM.h>            // read and write from flash memory
+
 // define the number of bytes you want to access
 #define EEPROM_SIZE 1
 
@@ -116,7 +116,7 @@ String getPictureFilename(){
   return filename; 
 }
 
-void CCameraManager::TakePicture()
+String CCameraManager::TakePicture()
 {
     Serial.println("Foto machen");
     camera_fb_t * fb = NULL;
@@ -124,7 +124,7 @@ void CCameraManager::TakePicture()
     fb = esp_camera_fb_get();  
     if(!fb) {
         Serial.println("Camera capture failed");
-        return;
+        return "";
     }
 
     // Path where new picture will be saved in SD Card
@@ -145,7 +145,7 @@ void CCameraManager::TakePicture()
     file.close();
     esp_camera_fb_return(fb); 
     // DeInitMicroSDCard();
-    
+
     // Turns off the ESP32-CAM white on-board LED (flash) connected to GPIO 4
     // pinMode(4, OUTPUT);
     // digitalWrite(4, LOW);
@@ -153,4 +153,5 @@ void CCameraManager::TakePicture()
     
     // delay(2000);
     Serial.println("Bild aufgenommen");
+    return path;
 }

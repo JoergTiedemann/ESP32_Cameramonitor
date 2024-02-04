@@ -216,7 +216,9 @@ void loop()
         taskA.previous = millis();
 
         if (dash.data.TakePicture) {
-            CameraManager.TakePicture();
+            String filename = CameraManager.TakePicture();
+            if (filename != "")
+                FirebaseManager.UploadPicture(filename);
             dash.data.TakePicture = false;
         }
     }

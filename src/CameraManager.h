@@ -11,7 +11,7 @@ private:
 
 public : 
     void begin();
-    void TakePicture();
+    String TakePicture();
     void InitMicroSDCard();
     void DeInitMicroSDCard();
 

@@ -19,9 +19,11 @@ git add -f <relativer Pfad vom Projektroot auf bin und elf Datei>
 ins git repo aufgenommen worden
 
 ## Compilieren
-Nach dem Compilieren steht im Verzeichnis .pio\Build\ES32dev die Datei firmware.bin 
+Nach dem Compilieren steht im Verzeichnis .pio\Build\ES32dev die Datei camera.bin 
 zur Verfügung mit die dann geflasht werden kann
 Aktuell belegt dieses Image den Speicher wie folgt:
 ```
-RAM:   [==        ]  16.0% (used 52480 bytes from 327680 bytes)
-Flash: [=======   ]  71.9% (used 1412681 bytes from 1966080 bytes)
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [==        ]  17.6% (used 57692 bytes from 327680 bytes)
+Flash: [========  ]  81.8% (used 1607493 bytes from 1966080 bytes)
+Building .pio\build\esp32dev\Camera.bin

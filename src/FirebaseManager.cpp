@@ -18,6 +18,8 @@
 // Insert RTDB URLefine the RTDB URL */
 #define DATABASE_URL "https://espdata-b473e-default-rtdb.europe-west1.firebasedatabase.app" 
 
+#define STORAGE_BUCKET_ID "espdata-b473e.appspot.com"
+#define BUCKET_PHOTO "/data/photo.jpg"
 
 //#define FIREBASE_CLIENT_EMAIL "firebase-adminsdk-kouyy@espdata-b473e.iam.gserviceaccount.com"
 //const char PRIVATE_KEY[] PROGMEM = "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQClzHhsqFU5rPsZ\nkcfFZr2Z4K7AlSCmhyuVuCGDTzC1WmcebkcOheI3r/MvAd/BF8fu7bOQ7H2fCVCD\nVVG/zyqhnlbnfwot0Ou+rwbfbVqM8FXOu3vOQUIosRrr+wjXfwPMJdWbkINL9iqC\n4P2V28I6RDHSH+hMtXXnwNg99u8l9ad81mttX17aIZJy6I49meMOoWHOjdxZzmEB\njPgL4tdz02PoUqaVqC2DkVn3Xek0GOJ5iBrcdwAwWenHDz2fHVA1H1dbkLaSVhJ0\nNgCHQrAgjZ3hgGZetZw9pkL7xowLEBqfNCdL8ZGecoHRx5qtL4ppfRSSwxi+48bD\nTweQ5jwVAgMBAAECggEAGkfOYN7P34az/fTAdzcBX8ZLEkYGeQ8HpsGbN6P8+F9z\nj/xym/KMjeorFcI/dEKE6Qeu77kPcn7jTxCzlr/2UHb3lys+cvkLnTFDhB/ie2D5\ny6f73buKCpwuxHAJZ0CABW3hLY7wbkEqB46Knk9JZWX7ha8+vwYBF0gB9CnTn4RO\n1+Wv9jrgG3Rb0trP3B49xtkPlxuK+gUfCLnApFhSKtZ05OIoy8EpiYLjhrlDShT4\n5ZJnXty9WTuA6oPg2xXeSJCM2HmCPLvrGHwDJ4FRpb73b58vdjr0+3VFwY5PBOBR\nzqwgRhzFqeUuyDzh0u6OLaKunHwUI158l2K197YP4wKBgQDdsN2v7zmJiWj+iFdT\nZXMnNUePYLqVvNWFzKKgA4xtDuIFdvQCxuNR6tqUmNZgmB/hC9c6hsm30kPCW6ca\ncIrcUaIck8XQ9C4qQFuxIsSGsHPaibJJCVKxvRW8KEuKAq/XhbvRxG5trhs7y/TU\nlNIrIjQbzLOd7uvUAeW9ygo6SwKBgQC/dTjN/mmgkfxgmF6zkfGdBaKO/w/ordm1\nsvasRx8oEiI/XxZJVekShLJ1G2Gcdp+L3rsqlkO72wMF3fiOIIcsYAQ5cenwNmx8\nVRxLKFWzqlWXwkhDAuT/0zEZEpc5Cl4u9TJSzfI2vNX5K4pHkGGVX9Eg+rsp0JkV\nmbDik39nHwKBgAzY8R//ByCXXARUNmtY18GP7uO6QVXoKZ+lak9HpV20nRif+ign\nCol2yNAPw2y5pC9QllqH8Sy7/L1IvnhjyUhXWsO5NJ+VZw9/x1COqUD8/NnPXQuq\nhKZUROwwkaAf47zjvSy864Fjs6RVf4zKSxvA0bBCvq4KaJRSv9Ot38XdAoGASnCA\nQo9dcEHyd3gmsfjXkS6ksqZ3AAfAMwY/JGKOuZy7VhpZZvARK9MOM7wOqq/wfoh+\nCyPbeAnCViCkyFXbWKSIX/FrfKscaQcKdipbj/x1RQkT4YIZmWH6n/37cAEY93b8\nNve96gxnwXZtUD/RwSs8+26hILPrIVvdS2r/yQ8CgYAruqLyDeC+Uo/Ae3rlBov8\nvBXCZVU9mZZIRTk0ceO/4eDJ+36s7Aj049lR32fVrMHgxk1qyib57lboqpCnQ+Eg\nqHV96YuUzs7rWTYUYPqVSB4PYb/G1mDMQt/a6vq3gAU0AYMQNTj8ZShMsdumjfNI\nYMRZTSd0zYNsyk74Jlns3A==\n-----END PRIVATE KEY-----\n";
@@ -643,5 +645,19 @@ void fcsUploadCallback(FCS_UploadStatusInfo info)
     }
     else if (info.status == fb_esp_fcs_upload_status_error){
         Serial.printf("Upload failed, %s\n", info.errorMsg.c_str());
+    }
+}
+
+void CFirebaseManager::UploadPicture(String filename)
+{
+    Serial.print("Uploading picture... ");
+
+    //MIME type should be valid to avoid the download problem.
+    //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
+    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, filename /* path to local file */, mem_storage_type_sd /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, BUCKET_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */,fcsUploadCallback)){
+      Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+    }
+    else{
+      Serial.println(fbdo.errorReason());
     }
 }
