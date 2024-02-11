@@ -18,6 +18,15 @@
         "direction": "control",
         "buttontextOn": "Senden",
         "display": "button"
+    },
+    {
+        "name": "ReloadPicture",
+        "label": "Bild laden",
+        "type": "bool",
+        "hidden":false,
+        "direction": "control",
+        "buttontextOn": "Laden",
+        "display": "button"
     }
  
 ]

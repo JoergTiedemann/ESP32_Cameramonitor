@@ -5,6 +5,7 @@ struct dashboardData
 {
 	bool TakePicture;
 	bool MessageTest;
+	bool ReloadPicture;
 };
 
 #endif

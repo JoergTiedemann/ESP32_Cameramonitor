@@ -1,13 +1,15 @@
 #include "webServer.h"
 #include "ArduinoJson.h"
 #include <Arduino.h>
-
+#include "..\..\..\src\CameraManager.h"
 #ifdef ESP32
     #include "LITTLEFS.h"
     #define LittleFS LITTLEFS
 #elif defined(ESP8266)
     #include "LittleFS.h"
 #endif
+#include <FS.h>                // SD Card ESP32
+#include <SD_MMC.h>            // SD Card ESP32
 
 
 // Include the header file we create with webpack
@@ -200,6 +202,21 @@ void webServer::bindAll()
         Serial.printf("Anforderung von FirmwareUpdate\n");
         OTAManager.m_bDoUpdate = true;
     });
+
+    //get Picture
+    server.on(PSTR("/api/getpicture"), HTTP_GET, [](AsyncWebServerRequest *request) {
+        Serial.printf("Send Picture to Webserver:%s\n",CameraManager.m_PictureName.c_str());
+        // CameraManager.InitMicroSDCard();
+        request->send(SD_MMC,CameraManager.m_PictureName, "image/jpg", false);
+        // CameraManager.DeInitMicroSDCard();
+    });
+
+
+// void AsyncWebServerRequest::send(FS &fs, const String& path, const String& contentType, bool download, AwsTemplateProcessor callback){
+//   if(fs.exists(path) || (!download && fs.exists(path+".gz"))){
+//     send(beginResponse(fs, path, contentType, download, callback));
+//   } else send(404);
+// }
 
 
     //get file listing

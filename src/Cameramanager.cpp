@@ -131,6 +131,7 @@ String CCameraManager::TakePicture()
 
     // Path where new picture will be saved in SD Card
     String path = getPictureFilename();
+    m_PictureName = path;
     // InitMicroSDCard();
     fs::FS &fs = SD_MMC; 
     Serial.printf("Picture file name: %s\n", path.c_str());
