@@ -57,6 +57,12 @@
         "value": 300
     },
     {
+        "name": "SDSpeed",
+        "label": "SD Cadr SPI Speed [1/10MHz]",
+        "type": "uint16_t",
+        "value": 20
+    },
+    {
         "name": "WarnOnTime",
         "label": "max Einschaltzeit bis Warnung [Sek]",
         "type": "uint16_t",

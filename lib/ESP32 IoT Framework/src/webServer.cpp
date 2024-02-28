@@ -1,15 +1,19 @@
 #include "webServer.h"
 #include "ArduinoJson.h"
 #include <Arduino.h>
+// #include "addons\sdhelper.h"
 #include "..\..\..\src\CameraManager.h"
-#ifdef ESP32
-    #include "LITTLEFS.h"
-    #define LittleFS LITTLEFS
-#elif defined(ESP8266)
-    #include "LittleFS.h"
-#endif
-#include <FS.h>                // SD Card ESP32
-#include <SD_MMC.h>            // SD Card ESP32
+
+// #ifdef ESP32
+     #include "LITTLEFS.h"
+     #define LittleFS LITTLEFS
+// #elif defined(ESP8266)
+//     #include "LittleFS.h"
+// #endif
+// #include <SD_MMC.h>            // SD Card ESP32
+//#include <SD.h>            // SD Card ESP32
+// #include "SDFat.h"            // SD Card ESP32
+
 
 
 // Include the header file we create with webpack
@@ -22,6 +26,10 @@
 #include "dashboard.h"
 #include "DiagManager.h"
 #include "OTAManager.h"
+
+// #include <FS.h>                // SD Card ESP32
+//#include <Firebase_ESP_Client.h>
+// #include "addons\sdhelper.h"
 
 
 void webServer::begin()
@@ -205,9 +213,13 @@ void webServer::bindAll()
 
     //get Picture
     server.on(PSTR("/api/getpicture"), HTTP_GET, [](AsyncWebServerRequest *request) {
-        Serial.printf("Send Picture to Webserver:%s\n",CameraManager.m_PictureName.c_str());
+        CameraManager.SendPicture(request);
+        // Serial.printf("Send Picture to Webserver:%s\n",CameraManager.m_PictureName.c_str());
         // CameraManager.InitMicroSDCard();
-        request->send(SD_MMC,CameraManager.m_PictureName, "image/jpg", false);
+        // fs::FS &fs = DEFAULT_SD_FS;
+        // request->send(DEFAULT_SD_FS,CameraManager.m_PictureName, "image/jpg", false);
+        // request->send(SD,CameraManager.m_PictureName, "image/jpg", false);
+        // request->send(SdFs,CameraManager.m_PictureName, "image/jpg", false);
         // CameraManager.DeInitMicroSDCard();
     });
 

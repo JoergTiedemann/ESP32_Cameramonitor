@@ -110,9 +110,10 @@ void CFirebaseManager::firebaseSignIn()
 
     fbauth.user.email = USER_EMAIL;
     fbauth.user.password = configManager.data.FirebasePassword;
-    fbdo.setResponseSize(4096);
+    //dies wieder reinnehmen!!!! fbdo.setResponseSize(4096);
 
-    // fbdo.setBSSLBufferSize(1024, 1024);
+    fbdo.setBSSLBufferSize(8192, 4096);
+
     // //Set the size of HTTP response buffers in the case where we want to work with large data.```
     // fbdo.setResponseSize(1024);
 
@@ -122,10 +123,10 @@ void CFirebaseManager::firebaseSignIn()
     /* Assign the callback function for the long running token generation task */
     fbconfig.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
       // Assign the maximum retry of token generation
-    fbconfig.max_token_generation_retry = 5;
+    //dies wieder reinnehmen!!!! fbconfig.max_token_generation_retry = 5;
     //config.signer.preRefreshSeconds = 3420; // force token refresh in 3 minutes (57 minutes earlier)
 
-    /** Timeouts setzen habe das gegenüber dem Dewfault massiv verlaengert. */
+    /** Timeouts setzen habe das gegenüber dem Dewfault massiv verlaengert. 
     //WiFi reconnect timeout (interval) in ms (10 sec - 5 min) when WiFi disconnected.
     fbconfig.timeout.wifiReconnect = 60 * 1000;
     //Socket begin connection timeout (ESP32) or data transfer timeout (ESP8266) in ms (1 sec - 1 min).
@@ -141,6 +142,10 @@ void CFirebaseManager::firebaseSignIn()
     //RTDB Stream error notification timeout (interval) in ms (3 sec - 30 sec). It determines how often the readStream
     //will return false (error) when it called repeatedly in loop.
     fbconfig.timeout.rtdbStreamError = 30 * 1000;
+*/
+
+    fbconfig.fcs.upload_buffer_size = 512;
+
 
 
 
@@ -385,9 +390,9 @@ void CFirebaseManager::begin()
     // }
 
     //fbdo.setBSSLBufferSize(2048 /* Rx buffer size in bytes from 512 - 16384 */, 512 /* Tx buffer size in bytes from 512 - 16384 */);
-    //fbdo.setBSSLBufferSize(4096 , 512);
+    // fbdo.setBSSLBufferSize(4096 , 512);
     // fbdo.setBSSLBufferSize(8192 , 1024);
-    fbdo.setResponseSize(4096);
+    //dies wieder reinnehmen!!!! fbdo.setResponseSize(4096);
 
     // fbdo.setBSSLBufferSize(1024, 1024);
     // //Set the size of HTTP response buffers in the case where we want to work with large data.```
@@ -395,14 +400,14 @@ void CFirebaseManager::begin()
 
 
     Firebase.reconnectWiFi(true);
-
+    Firebase.reconnectNetwork(true);
     /* Assign the callback function for the long running token generation task */
     fbconfig.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
       // Assign the maximum retry of token generation
-    fbconfig.max_token_generation_retry = 5;
+    //dies wieder reinnehmen!!!! fbconfig.max_token_generation_retry = 5;
     //config.signer.preRefreshSeconds = 3420; // force token refresh in 3 minutes (57 minutes earlier)
 
-    /** Timeouts setzen habe das gegenüber dem Dewfault massiv verlaengert. */
+    /** Timeouts setzen habe das gegenüber dem Dewfault massiv verlaengert. 
     //WiFi reconnect timeout (interval) in ms (10 sec - 5 min) when WiFi disconnected.
     fbconfig.timeout.wifiReconnect = 60 * 1000;
     //Socket begin connection timeout (ESP32) or data transfer timeout (ESP8266) in ms (1 sec - 1 min).
@@ -418,6 +423,7 @@ void CFirebaseManager::begin()
     //RTDB Stream error notification timeout (interval) in ms (3 sec - 30 sec). It determines how often the readStream
     //will return false (error) when it called repeatedly in loop.
     fbconfig.timeout.rtdbStreamError = 30 * 1000;
+*/
 
     firebaseSignIn();
     if (!Firebase.ready())
@@ -446,7 +452,7 @@ void CFirebaseManager::begin()
     // fbdo.fcm.setTimeToLive(1000);
     // You can use TCP KeepAlive For more reliable stream operation and tracking the server connection status, please read this for detail.
     // https://github.com/mobizt/Firebase-ESP32#enable-tcp-keepalive-for-reliable-http-streaming
-    fbdo.keepAlive(5, 5, 1);
+    // fbdo.keepAlive(5, 5, 1);
  
  
     // // und nun das Zeug für den Firebase Stream um benachrichtigt zu werden wenn Daten von der Webanwendung geaendert wurden

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 // #include <FirebaseJson.h>
+#include "webServer.h"
 
 class CCameraManager
 {
@@ -12,10 +13,12 @@ private:
 public : 
     void begin();
     String m_PictureName;
+    String m_PictureNameSimple;
     String TakePicture();
     void InitMicroSDCard();
-    void DeInitMicroSDCard();
-
+    void printCardType();
+    void SendPicture(AsyncWebServerRequest *request);
+    File myFile; 
     CCameraManager()
 	{
 	}
