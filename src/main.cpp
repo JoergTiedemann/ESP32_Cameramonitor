@@ -74,8 +74,6 @@ void saveCallback() {
 }
 
 
-
-
 void setup() 
 {
     // Brownout detector abschalten
@@ -84,6 +82,9 @@ void setup()
     Serial.begin(115200);
     // pinMode(D13,OUTPUT);
     BoardInformation.PrintBoardInformation();
+
+    pinMode(redled, OUTPUT);
+    pinMode(ledPin, OUTPUT);
 
     LittleFS.begin();
     updater.begin();
@@ -219,6 +220,7 @@ void loop()
         taskA.previous = millis();
 
         if (dash.data.TakePicture) {
+
             String filename = CameraManager.TakePicture();
             if ((filename != "") && (configManager.data.ConnectToCloud!=0))
                 FirebaseManager.UploadPicture(filename);

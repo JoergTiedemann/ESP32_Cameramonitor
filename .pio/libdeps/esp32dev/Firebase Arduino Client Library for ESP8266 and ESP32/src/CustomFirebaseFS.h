@@ -19,11 +19,15 @@
 // 📍 For SdFat on ESP32 and other devices except for ESP8266
 #undef DEFAULT_SD_FS // remove SD defined macro
 #undef CARD_TYPE_SD // remove SD defined macro
-#include <SdFat.h> //https://github.com/greiman/SdFat
-extern  SdFat sd_fat_fs;   //should declare as static here
-#define DEFAULT_SD_FS sd_fat_fs
-#define CARD_TYPE_SD 1
-#define SD_FS_FILE SdFile
+// #include <SdFat.h> //https://github.com/greiman/SdFat
+// extern  SdFat sd_fat_fs;   //should declare as static here
+// #define DEFAULT_SD_FS sd_fat_fs
+// #define CARD_TYPE_SD 1
+// #define SD_FS_FILE SdFile
+
+#include <SD_MMC.h>
+#define DEFAULT_SD_FS SD_MMC //For ESP32 SDMMC
+#define CARD_TYPE_SD_MMC 1
 
 #endif
 

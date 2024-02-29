@@ -3,6 +3,10 @@
 
 #include <Arduino.h>
 // #include <FirebaseJson.h>
+// By John Main - TronicsBench.com
+//
+const int ledPin = 4; // FLASH LIGHT LED on GPIO4
+const int redled = 33; // Other LED on GPIO33
 
 class CFirebaseManager
 {

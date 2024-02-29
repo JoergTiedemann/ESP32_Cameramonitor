@@ -649,6 +649,9 @@ void fcsUploadCallback(FCS_UploadStatusInfo info)
         Serial.printf("Tokens: %s\n", meta.downloadTokens.c_str());
         Serial.printf("Download URL: %s\n\n", fbdo.downloadURL().c_str());
         DiagManager.PushDiagData("Erledigt: %s",fbdo.downloadURL().c_str());
+        // LED Ausschalten
+        digitalWrite(redled, HIGH);
+        digitalWrite(ledPin, LOW);
     }
     else if (info.status == fb_esp_fcs_upload_status_error){
         Serial.printf("Upload failed, %s\n", info.errorMsg.c_str());
@@ -662,6 +665,9 @@ void CFirebaseManager::UploadPicture(String filename)
     //MIME type should be valid to avoid the download problem.
     //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
     DiagManager.PushDiagData("Foto hochladen: %s",filename.c_str());
+    // LED einschalten
+    digitalWrite(redled, LOW);
+    digitalWrite(ledPin, HIGH);
 
     if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, filename /* path to local file */, mem_storage_type_sd /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, BUCKET_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */,fcsUploadCallback)){
       Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
