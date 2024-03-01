@@ -29,6 +29,7 @@
 // Insert Authorized Email and Corresponding Password
 #define USER_EMAIL "pumpenmonitor@tiedemann.de"
 
+extern int buploadRetry;
 
 // //Define Firebase Data object
 FirebaseData fbdo;
@@ -649,12 +650,19 @@ void fcsUploadCallback(FCS_UploadStatusInfo info)
         Serial.printf("Tokens: %s\n", meta.downloadTokens.c_str());
         Serial.printf("Download URL: %s\n\n", fbdo.downloadURL().c_str());
         DiagManager.PushDiagData("Erledigt: %s",fbdo.downloadURL().c_str());
+        buploadRetry=0;
         // LED Ausschalten
         digitalWrite(redled, HIGH);
         digitalWrite(ledPin, LOW);
     }
     else if (info.status == fb_esp_fcs_upload_status_error){
-        Serial.printf("Upload failed, %s\n", info.errorMsg.c_str());
+      if (buploadRetry < 2)
+          buploadRetry++;
+      else 
+          buploadRetry=0;
+
+        Serial.printf("Upload failed, %s Retry:%d\n", info.errorMsg.c_str(),buploadRetry);
+        DiagManager.PushDiagData("Upload failed, %s Retry:%d", info.errorMsg.c_str(),buploadRetry);
     }
 }
 
@@ -664,7 +672,7 @@ void CFirebaseManager::UploadPicture(String filename)
 
     //MIME type should be valid to avoid the download problem.
     //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
-    DiagManager.PushDiagData("Foto hochladen: %s",filename.c_str());
+    DiagManager.PushDiagData("Foto hochladen: %s Retry:%d",filename.c_str(),buploadRetry);
     // LED einschalten
     digitalWrite(redled, LOW);
     digitalWrite(ledPin, HIGH);

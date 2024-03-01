@@ -57,7 +57,7 @@ long m_historicLaufAnzahl[cihistoricdatalength];
 String strStartTime("");
 bool bCloudConnected  = false;
 time_t now = NULL;
-
+int  buploadRetry = 0;
 
 struct task
 {    
@@ -91,7 +91,7 @@ void setup()
     configManager.begin();
     configManager.setConfigSaveCallback(saveCallback);
     WiFiManager.begin(configManager.data.projectName);
-    GUI.begin();
+    GUI.begin(CameraManager.SendPicture);
 
     DiagManager.begin(20,10);
 
@@ -219,7 +219,10 @@ void loop()
     {
         taskA.previous = millis();
 
-        if (dash.data.TakePicture) {
+        if ((dash.data.TakePicture) || (buploadRetry>0))
+        {
+            if (buploadRetry>0)
+                delay(3000);
 
             String filename = CameraManager.TakePicture();
             if ((filename != "") && (configManager.data.ConnectToCloud!=0))

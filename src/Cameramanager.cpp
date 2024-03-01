@@ -44,6 +44,7 @@
 #define PCLK_GPIO_NUM     22
 
 CCameraManager CameraManager;
+String CCameraManager::m_PictureName ="";
 
 #define SPI_CS_PIN 13
 #define SPI_SCK_PIN 14
@@ -83,7 +84,31 @@ void CCameraManager::printCardType() {
     return;
   }
   else
-      Serial.printf("SD Cardtype:%d\n",cardType);
+  {
+    switch (cardType) {
+    case CARD_MMC:
+      Serial.printf("MMC-Card\n");
+      break;
+
+    case CARD_SD:
+      Serial.printf("SD-Card\n");
+      break;
+
+    case CARD_SDHC:
+        Serial.printf("SDHC-Card\n");
+      break;
+
+    default:
+      Serial.printf("SD Unknown Cardtype:%d\n",cardType);
+    }
+    uint64_t siz = SD_MMC.cardSize()  / (1024 * 1024);;
+    Serial.printf("Size:%lluMB\n",siz);
+    DiagManager.PushDiagData("SD-Card Mount success! Size:%lluMB",siz);
+    Serial.printf("Total space: %lluMB\n", SD_MMC.totalBytes() / (1024 * 1024));
+    DiagManager.PushDiagData("Total space: %lluMB", SD_MMC.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));
+    DiagManager.PushDiagData("Used space: %lluMB", SD_MMC.usedBytes() / (1024 * 1024));
+  }
 #endif
 }
 
@@ -111,12 +136,14 @@ void CCameraManager::InitMicroSDCard()
     if (!Firebase.sdBegin(&sdFatSPIConfig, SPI_CS_PIN, SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN)) // pointer to SdSpiConfig, SS, SCK,MISO, MOSI
     {
         Serial.println("failed\n");
+        DiagManager.PushDiagData("SD Card Mount Failed");
         return;
     }
     else
     {
         Serial.println("success\n");
-    }
+        DiagManager.PushDiagData("SD Card Mount Failed");
+  }
 
     Serial.printf("Mounting erfolgreich Addr:%d\n",&DEFAULT_SD_FS);
   
@@ -131,6 +158,7 @@ void CCameraManager::InitMicroSDCard()
     // Start Micro SD card
     if(!SD_MMC.begin("/sdcard", true)){
       Serial.println("SD Card Mount Failed");
+      DiagManager.PushDiagData("SD Card Mount Failed");
       return;
     }
     printCardType();
@@ -163,7 +191,7 @@ void CCameraManager::begin()
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; 
   config.grab_mode = CAMERA_GRAB_LATEST; 
-  
+  // config.sccb_i2c_port = CONFIG_SCCB_HARDWARE_I2C_PORT1;
   if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
     config.jpeg_quality = 10;
@@ -178,13 +206,15 @@ void CCameraManager::begin()
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
+    DiagManager.PushDiagData("Camera init failed with error 0x%x", err);
     return;
   }
+  else
+      DiagManager.PushDiagData("Camera init successful");
+
 
   // Init SD Card
   InitMicroSDCard();
-  
-  Serial.println("This will never be printed");
 }
 
 // Get the picture filename based on the current ime
@@ -215,7 +245,6 @@ String CCameraManager::TakePicture()
     // Path where new picture will be saved in SD Card
     String path = getPictureFilename();
     m_PictureName = path;
-    m_PictureNameSimple = m_PictureName.substring(1);
 
     // InitMicroSDCard();
     // fs::FS &fs = SD; 
@@ -252,10 +281,9 @@ String CCameraManager::TakePicture()
     Serial.println("Bild aufgenommen");
     return path;
 }
-
-void CCameraManager::SendPicture(AsyncWebServerRequest *request)
+void CCameraManager::SendPicture(WebserverPictureInfo PictureInfo)
 {
-        Serial.printf("Send Picture to Webserver:%s\n",CameraManager.m_PictureNameSimple.c_str());
+        Serial.printf("Send Picture to Webserver:%s\n",CameraManager.m_PictureName.c_str());
 #if defined(USE_SD_FAT_ESP32)
         fs::FS datei = fs::FS(fs::FSImplPtr(new SdFat32FSImpl(DEFAULT_SD_FS)));
         // if (datei.exists(CameraManager.m_PictureNameSimple.c_str()))
@@ -277,10 +305,10 @@ void CCameraManager::SendPicture(AsyncWebServerRequest *request)
         //   Serial.printf("SD Datei %s existiert\n",CameraManager.m_PictureNameSimple.c_str());
         // else  
         //   Serial.printf("SD Datei %s existiert nicht\n",CameraManager.m_PictureNameSimple.c_str());
-         request->send(datei,CameraManager.m_PictureName, "image/jpg", false);
+         PictureInfo.request->send(datei,CameraManager.m_PictureName, "image/jpg", false);
 #else
         // CameraManager.InitMicroSDCard();
-        request->send(SD_MMC,CameraManager.m_PictureName, "image/jpg", false);
+        PictureInfo.request->send(SD_MMC,CameraManager.m_PictureName, "image/jpg", false);
 #endif
 
 }

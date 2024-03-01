@@ -12,12 +12,11 @@ private:
 
 public : 
     void begin();
-    String m_PictureName;
-    String m_PictureNameSimple;
+    static String m_PictureName;
     String TakePicture();
     void InitMicroSDCard();
     void printCardType();
-    void SendPicture(AsyncWebServerRequest *request);
+    static void SendPicture(WebserverPictureInfo PictureInfo);
     File myFile; 
     CCameraManager()
 	{
