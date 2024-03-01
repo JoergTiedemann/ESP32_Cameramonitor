@@ -279,6 +279,7 @@ void sendJpg(AsyncWebServerRequest *request){
 
 
 void streamJpg(AsyncWebServerRequest *request){
+    // Serial.printf("stream jpg called\n");
     AsyncJpegStreamResponse *response = new AsyncJpegStreamResponse();
     if(!response){
         request->send(501);
@@ -332,6 +333,19 @@ void getCameraStatus(AsyncWebServerRequest *request){
     response->addHeader("Access-Control-Allow-Origin", "*");
     request->send(response);
 }
+
+// void setCameraRaw(AsyncWebServerRequest *request){
+//     sensor_t * s = esp_camera_sensor_get();
+//     if(s == NULL){
+//         request->send(501);
+//         return;
+//     }
+//    int res = 0;
+//    res = s->set_res_raw(s, 1000, 550, 1640, 790, 0, 0, 2592, 790, 640, 240, false, false);
+//    AsyncWebServerResponse * response = request->beginResponse(200);
+//    response->addHeader("Access-Control-Allow-Origin", "*");
+//    request->send(response);
+// }
 
 void setCameraVar(AsyncWebServerRequest *request){
     if(!request->hasArg("var") || !request->hasArg("val")){
@@ -389,16 +403,3 @@ void setCameraVar(AsyncWebServerRequest *request){
     request->send(response);
 }
 
-// AsyncWebServer server(80);
-
-// void setup(){
-//     Serial.begin(115200);
-//     Serial.setDebugOutput(true);
-
-//     server.on("/bmp", HTTP_GET, sendBMP);
-//     server.on("/capture", HTTP_GET, sendJpg);
-//     server.on("/stream", HTTP_GET, streamJpg);
-//     server.on("/control", HTTP_GET, setCameraVar);
-//     server.on("/status", HTTP_GET, getCameraStatus);
-//     server.begin();
-// }
