@@ -68,9 +68,44 @@ struct task
 task taskA = { .rate = 500, .previous = 0 };
 task taskCloud = { .rate = 1000, .previous = 0 };
 
+void setCamera() {
+    // so nun die Kamerakonfiguration speichern
+    Serial.println("Kameraeinstellungen setzen"); 
+     sensor_t * s = esp_camera_sensor_get();
+    if(s == NULL){
+        return;
+    }
+    Serial.println("Kameraeinstellungen setzen -> los"); 
+    int res = 0;
+    if (configManager.data.FrameSize != s->status.framesize)
+    {
+        Serial.printf("Kameraframesize %d\n",configManager.data.FrameSize); 
+        res = s->set_framesize(s, (framesize_t)configManager.data.FrameSize);
+    }
+    if (configManager.data.Quality != s->status.quality)
+        res = s->set_quality(s, configManager.data.Quality);
+    if (configManager.data.Brighness != s->status.brightness)
+        res = s->set_brightness(s, configManager.data.Brighness);
+    if (configManager.data.whiteBal != s->status.awb)
+        res = s->set_whitebal(s, configManager.data.whiteBal);
+    if (configManager.data.AwbGain != s->status.awb_gain)
+        res = s->set_awb_gain(s, configManager.data.AwbGain);
+    if (configManager.data.WbMode != s->status.wb_mode)
+        res = s->set_wb_mode(s, configManager.data.WbMode);
+
+    if (configManager.data.VFlip != s->status.vflip)
+        res = s->set_vflip(s, configManager.data.VFlip);
+    if (configManager.data.Mirror != s->status.hmirror)
+        res = s->set_hmirror(s, configManager.data.Mirror);
+    Serial.println("Kameraeinstellungen setzen -> fertig"); 
+
+}
+
+
 void saveCallback() {
     Serial.println("EEPROM saved"); 
     DiagManager.PushDiagData("Konfiguration in EEPROM gesichert");
+    setCamera();
 }
 
 
@@ -152,7 +187,7 @@ void setup()
     // DiagManager.AddVariableToMonitor(8,String("ComboMode"),&dash.data.mode);
     // DiagManager.AddVariableToMonitor(9,String("CfgTestCombo"),&configManager.data.TestCombo);
 
-
+    setCamera();
 
 }
 

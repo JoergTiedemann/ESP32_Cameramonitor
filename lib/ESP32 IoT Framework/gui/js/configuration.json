@@ -48,37 +48,82 @@
     },
     {
         "type": "header",
-        "text": "Pumpenüberwachung"
+        "text": "Kameraeinstellung"
     },
     {
-        "name": "MaxOnTime",
-        "label": "max Einschaltzeit [Sek]",
+        "name": "FrameSize",
+        "label": "Kameraauflösung",
         "type": "uint16_t",
-        "value": 300
+        "direction": "control",
+        "control": "select",
+        "value": 8,
+        "options": [
+            {"Label":"96x96","Value":0},
+            {"Label":"160x120","Value":1},
+            {"Label":"176x144","Value":2},
+            {"Label":"240x176","Value":3},
+            {"Label":"240x240","Value":4},
+            {"Label":"320x240","Value":5},
+            {"Label":"400x296","Value":6},
+            {"Label":"480x320","Value":7},
+            {"Label":"640x480","Value":8},
+            {"Label":"800x600","Value":9},
+            {"Label":"1024x768","Value":10},
+            {"Label":"1280x720","Value":11},
+            {"Label":"1280x1024","Value":12},
+            {"Label":"1600x1200","Value":13}
+        ]
     },
     {
-        "name": "SDSpeed",
-        "label": "SD Cadr SPI Speed [1/10MHz]",
+        "name": "Quality",
+        "label": "Qualität [0-63]",
         "type": "uint16_t",
-        "value": 20
+        "value": 10
     },
     {
-        "name": "WarnOnTime",
-        "label": "max Einschaltzeit bis Warnung [Sek]",
-        "type": "uint16_t",
-        "value": 120
+        "name": "Brighness",
+        "label": "Helligkeit [-2 - 2]",
+        "type": "int16_t",
+        "value": 0
     },
     {
-        "name": "PumpeStatusEinLevel",
-        "label": "Schwellenwert Pumpe Ein",
-        "type": "uint16_t",
-        "value": 200
+        "name": "VFlip",
+        "label": "Kippen",
+        "type": "bool",
+        "value": false
     },
     {
-        "name": "ZeitCheckInit",        
-        "label": "Ueberwachung nach Neustart Ein",
+        "name": "Mirror",
+        "label": "Spiegeln",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "whiteBal",
+        "label": "Weissabgeleich ",
         "type": "bool",
         "value": true
+    },
+    {
+        "name": "WbMode",        
+        "label": "Weissabgleich-Modus",
+        "type": "uint16_t",
+        "direction": "control",
+        "control": "select",
+        "value": 0,
+        "options": [
+            {"Label":"Auto","Value":0},
+            {"Label":"Sonnig","Value":1},
+            {"Label":"Wolkig","Value":2},
+            {"Label":"Buero","Value":3},
+            {"Label":"Wohnraum","Value":4}
+        ]
+    },
+    {
+        "name": "AwbGain",
+        "label": "Weissabgeleich Verstaerkung",
+        "type": "bool",
+        "value": false
     },
     {
         "type": "header",
