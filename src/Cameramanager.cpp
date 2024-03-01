@@ -1,12 +1,25 @@
 #include "CameraManager.h"
 
 #include "esp_camera.h"
-#include "FS.h"                // SD Card ESP32
-#include "SD_MMC.h"            // SD Card ESP32
+// #include "FS.h"                // SD Card ESP32
+// #include "SDfat.h"            // SD Card ESP32
 #include "soc/soc.h"           // Disable brownour problems
 #include "soc/rtc_cntl_reg.h"  // Disable brownour problems
 #include "driver/rtc_io.h"
 #include "DiagManager.h"
+#include "configManager.h"
+// Provide the RTDB payload printing info and other helper functions.
+// #include <addons/RTDBHelper.h>
+#include <Firebase_ESP_Client.h>
+#include "sd_fat32_fs_wrapper.h"
+
+#if defined(USE_SD_FAT_ESP32)
+  #include <SdFat.h> //https://github.com/greiman/SdFat
+  SdFat sd_fat_fs;   //should declare as static here
+#else
+  #include "FS.h"                // SD Card ESP32
+  #include "SD_MMC.h"            // SD Card ESP32
+#endif
 
 // define the number of bytes you want to access
 #define EEPROM_SIZE 1
@@ -31,29 +44,127 @@
 #define PCLK_GPIO_NUM     22
 
 CCameraManager CameraManager;
+String CCameraManager::m_PictureName ="";
+
+#define SPI_CS_PIN 13
+#define SPI_SCK_PIN 14
+#define SPI_MISO_PIN 2
+#define SPI_MOSI_PIN 15
+#define SPI_CLOCK_IN_MHz 10
+
+// https://github.com/greiman/SdFat
+#if defined(USE_SD_FAT_ESP32)
+SdSpiConfig sdFatSPIConfig(SPI_CS_PIN,  USER_SPI_BEGIN | SHARED_SPI, SD_SCK_MHZ(SPI_CLOCK_IN_MHz),&SPI);
+#endif
+//configManager.data.SDSpeed/10
+
+void CCameraManager::printCardType() {
+  Serial.print("Card type: ");
+#if defined(USE_SD_FAT_ESP32)
+  switch (DEFAULT_SD_FS.card()->type()) {
+    case SD_CARD_TYPE_SD1:
+      Serial.printf("SD1\n");
+      break;
+
+    case SD_CARD_TYPE_SD2:
+      Serial.printf("SD2\n");
+      break;
+
+    case SD_CARD_TYPE_SDHC:
+        Serial.printf("SDHC\n");
+      break;
+
+    default:
+      Serial.printf("Unknown\n");
+  }
+#else
+    uint8_t cardType = SD_MMC.cardType();
+    if(cardType == CARD_NONE){
+      Serial.println("No SD Card attached");
+    return;
+  }
+  else
+  {
+    switch (cardType) {
+    case CARD_MMC:
+      Serial.printf("MMC-Card\n");
+      break;
+
+    case CARD_SD:
+      Serial.printf("SD-Card\n");
+      break;
+
+    case CARD_SDHC:
+        Serial.printf("SDHC-Card\n");
+      break;
+
+    default:
+      Serial.printf("SD Unknown Cardtype:%d\n",cardType);
+    }
+    uint64_t siz = SD_MMC.cardSize()  / (1024 * 1024);;
+    Serial.printf("Size:%lluMB\n",siz);
+    DiagManager.PushDiagData("SD-Card Mount success! Size:%lluMB",siz);
+    Serial.printf("Total space: %lluMB\n", SD_MMC.totalBytes() / (1024 * 1024));
+    DiagManager.PushDiagData("Total space: %lluMB", SD_MMC.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));
+    DiagManager.PushDiagData("Used space: %lluMB", SD_MMC.usedBytes() / (1024 * 1024));
+  }
+#endif
+}
+
 
 // Initialize the micro SD card
+/*
+wenn dei SD Karte verwendet wird stehet 2 Moeglichkeiten zur Verfügung
+SD_MMC und SDFat 
+welche SD Library verwendet wird, wird in CustomFirebaseFS.h eingestellt damit die Firebase Bibliothek auch die richtige nimmt
+Generell ist SDFat wohl mächtiger und kann den Takt auf dem SPI Bus einstellen und ist insgesamt auch schneller und wird daher von mobizt 
+empfohlen
+SD_MMC ist aber einfacher zu verwenden und kann im 1Bit Mode verwendet werden
+das coole dabei ist das dann 3 GPIO zur Verfung stehen die ansonsten fuer den SPI Bus verwendet werden
+GPIO 13 und GPIO12 die jeweils als Ein- und als Ausgang arbeiten können und GPIO4 das ein Ausgang ist (und an dem die Flash LED angeschlossen ist)
+siehe auch https://www.best-microcontroller-projects.com/esp32-cam.html
+*/
 void CCameraManager::InitMicroSDCard()
 {
   // Start Micro SD card
   Serial.println("Starting SD Card");
-  if(!SD_MMC.begin()){
-    Serial.println("SD Card Mount Failed");
-    return;
+#if defined(USE_SD_FAT_ESP32)
+
+    //  SD_Card_Mounting();
+    Serial.print("\nMounting SD Card... ");
+    if (!Firebase.sdBegin(&sdFatSPIConfig, SPI_CS_PIN, SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN)) // pointer to SdSpiConfig, SS, SCK,MISO, MOSI
+    {
+        Serial.println("failed\n");
+        DiagManager.PushDiagData("SD Card Mount Failed");
+        return;
+    }
+    else
+    {
+        Serial.println("success\n");
+        DiagManager.PushDiagData("SD Card Mount Failed");
   }
-  uint8_t cardType = SD_MMC.cardType();
-  if(cardType == CARD_NONE){
-    Serial.println("No SD Card attached");
-    return;
-  }
+
+    Serial.printf("Mounting erfolgreich Addr:%d\n",&DEFAULT_SD_FS);
+  
+    printCardType();
+    uint32_t size = DEFAULT_SD_FS.card()->sectorCount();
+    if (size == 0){
+      Serial.printf("Can't determine card size\n");
+    }
+    uint32_t sizeMB = 0.000512 * size + 0.5;
+    Serial.printf("card size [MB]:%d \n",sizeMB);
+  #else
+    // Start Micro SD card
+    if(!SD_MMC.begin("/sdcard", true)){
+      Serial.println("SD Card Mount Failed");
+      DiagManager.PushDiagData("SD Card Mount Failed");
+      return;
+    }
+    printCardType();
+  #endif
 }
 
-void CCameraManager::DeInitMicroSDCard()
-{
-  // Start Micro SD card
-  Serial.println("Dismount SD Card");
-  SD_MMC.end();
-}
 
 
 void CCameraManager::begin()
@@ -80,7 +191,7 @@ void CCameraManager::begin()
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; 
   config.grab_mode = CAMERA_GRAB_LATEST; 
-  
+  // config.sccb_i2c_port = CONFIG_SCCB_HARDWARE_I2C_PORT1;
   if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
     config.jpeg_quality = 10;
@@ -95,13 +206,15 @@ void CCameraManager::begin()
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
+    DiagManager.PushDiagData("Camera init failed with error 0x%x", err);
     return;
   }
+  else
+      DiagManager.PushDiagData("Camera init successful");
+
 
   // Init SD Card
   InitMicroSDCard();
-  
-  Serial.println("This will never be printed");
 }
 
 // Get the picture filename based on the current ime
@@ -131,11 +244,20 @@ String CCameraManager::TakePicture()
 
     // Path where new picture will be saved in SD Card
     String path = getPictureFilename();
+    m_PictureName = path;
+
     // InitMicroSDCard();
-    fs::FS &fs = SD_MMC; 
+    // fs::FS &fs = SD; 
     Serial.printf("Picture file name: %s\n", path.c_str());
     
+
+#if defined(USE_SD_FAT_ESP32)
+    SdFile file;
+    file.open(path.c_str(), O_RDWR | O_CREAT);
+#else
+    fs::FS &fs = SD_MMC; 
     File file = fs.open(path.c_str(), FILE_WRITE);
+#endif
     if(!file){
         Serial.println("Failed to open file in writing mode");
     } 
@@ -150,11 +272,43 @@ String CCameraManager::TakePicture()
     // DeInitMicroSDCard();
 
     // Turns off the ESP32-CAM white on-board LED (flash) connected to GPIO 4
+#if not defined(USE_SD_FAT_ESP32)
     // pinMode(4, OUTPUT);
     // digitalWrite(4, LOW);
     // rtc_gpio_hold_en(GPIO_NUM_4);
-    
+#endif    
     // delay(2000);
     Serial.println("Bild aufgenommen");
     return path;
+}
+void CCameraManager::SendPicture(WebserverPictureInfo PictureInfo)
+{
+        Serial.printf("Send Picture to Webserver:%s\n",CameraManager.m_PictureName.c_str());
+#if defined(USE_SD_FAT_ESP32)
+        fs::FS datei = fs::FS(fs::FSImplPtr(new SdFat32FSImpl(DEFAULT_SD_FS)));
+        // if (datei.exists(CameraManager.m_PictureNameSimple.c_str()))
+        //   Serial.printf("Datei %s existiert\n",CameraManager.m_PictureNameSimple.c_str());
+        // else  
+        //   Serial.printf("Datei %s existiert nicht\n",CameraManager.m_PictureNameSimple.c_str());
+
+        // if (datei.exists(CameraManager.m_PictureName.c_str()))
+        //   Serial.printf("Datei %s existiert\n",CameraManager.m_PictureName.c_str());
+        // else  
+        //   Serial.printf("Datei %s existiert nicht\n",CameraManager.m_PictureName.c_str());
+
+        // if (DEFAULT_SD_FS.exists(CameraManager.m_PictureNameSimple.c_str()))
+        //   Serial.printf("SD Datei %s existiert\n",CameraManager.m_PictureName.c_str());
+        // else  
+        //   Serial.printf("SD Datei %s existiert nicht\n",CameraManager.m_PictureName.c_str());
+
+        // if (DEFAULT_SD_FS.exists(CameraManager.m_PictureName.c_str()))
+        //   Serial.printf("SD Datei %s existiert\n",CameraManager.m_PictureNameSimple.c_str());
+        // else  
+        //   Serial.printf("SD Datei %s existiert nicht\n",CameraManager.m_PictureNameSimple.c_str());
+         PictureInfo.request->send(datei,CameraManager.m_PictureName, "image/jpg", false);
+#else
+        // CameraManager.InitMicroSDCard();
+        PictureInfo.request->send(SD_MMC,CameraManager.m_PictureName, "image/jpg", false);
+#endif
+
 }

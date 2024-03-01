@@ -1,7 +1,7 @@
 #include "esp_camera.h"
 #include "Arduino.h"
 #include "FS.h"                // SD Card ESP32
-#include "SD_MMC.h"            // SD Card ESP32
+// #include "SD_MMC.h"            // SD Card ESP32
 #include "soc/soc.h"           // Disable brownour problems
 #include "soc/rtc_cntl_reg.h"  // Disable brownour problems
 #include "driver/rtc_io.h"
@@ -57,7 +57,7 @@ long m_historicLaufAnzahl[cihistoricdatalength];
 String strStartTime("");
 bool bCloudConnected  = false;
 time_t now = NULL;
-
+int  buploadRetry = 0;
 
 struct task
 {    
@@ -74,20 +74,24 @@ void saveCallback() {
 }
 
 
-
-
 void setup() 
 {
+    // Brownout detector abschalten
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+
     Serial.begin(115200);
     // pinMode(D13,OUTPUT);
     BoardInformation.PrintBoardInformation();
+
+    pinMode(redled, OUTPUT);
+    pinMode(ledPin, OUTPUT);
 
     LittleFS.begin();
     updater.begin();
     configManager.begin();
     configManager.setConfigSaveCallback(saveCallback);
     WiFiManager.begin(configManager.data.projectName);
-    GUI.begin();
+    GUI.begin(CameraManager.SendPicture);
 
     DiagManager.begin(20,10);
 
@@ -215,9 +219,13 @@ void loop()
     {
         taskA.previous = millis();
 
-        if (dash.data.TakePicture) {
+        if ((dash.data.TakePicture) || (buploadRetry>0))
+        {
+            if (buploadRetry>0)
+                delay(3000);
+
             String filename = CameraManager.TakePicture();
-            if (filename != "")
+            if ((filename != "") && (configManager.data.ConnectToCloud!=0))
                 FirebaseManager.UploadPicture(filename);
             dash.data.TakePicture = false;
         }

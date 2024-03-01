@@ -11,6 +11,7 @@ struct configData
 	bool ShowDiagnosePage;
 	char language[3];
 	uint16_t MaxOnTime;
+	uint16_t SDSpeed;
 	uint16_t WarnOnTime;
 	uint16_t PumpeStatusEinLevel;
 	bool ZeitCheckInit;

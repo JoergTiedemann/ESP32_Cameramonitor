@@ -2,12 +2,13 @@
 #include "ArduinoJson.h"
 #include <Arduino.h>
 
-#ifdef ESP32
-    #include "LITTLEFS.h"
-    #define LittleFS LITTLEFS
-#elif defined(ESP8266)
-    #include "LittleFS.h"
-#endif
+// #ifdef ESP32
+     #include "LITTLEFS.h"
+     #define LittleFS LITTLEFS
+// #elif defined(ESP8266)
+//     #include "LittleFS.h"
+// #endif
+
 
 
 // Include the header file we create with webpack
@@ -21,14 +22,25 @@
 #include "DiagManager.h"
 #include "OTAManager.h"
 
+extern void streamJpg(AsyncWebServerRequest *request);
+extern void sendJpg(AsyncWebServerRequest *request);
+extern void setCameraVar(AsyncWebServerRequest *request);
+extern void getCameraStatus(AsyncWebServerRequest *request);
 
-void webServer::begin()
+
+// #include <FS.h>                // SD Card ESP32
+//#include <Firebase_ESP_Client.h>
+// #include "addons\sdhelper.h"
+
+
+void webServer::begin(WebserverGetPictureCallback getPictureCallback)
 {
 #ifdef ESP32
     // TODO: Remove enter/exit traces after ESP32 build stable.  Experienced frequent crashing
     // during initial port when TCP stack not initialized before starting webserver instance.
     Serial.println(PSTR("webServer::begin enter"));
 #endif
+    m_getPictureCallback = getPictureCallback;
 
     //to enable testing and debugging of the interface
     DefaultHeaders::Instance().addHeader(PSTR("Access-Control-Allow-Origin"), PSTR("*"));
@@ -201,6 +213,20 @@ void webServer::bindAll()
         OTAManager.m_bDoUpdate = true;
     });
 
+    //get Picture
+    server.on(PSTR("/api/getpicture"), HTTP_GET, [](AsyncWebServerRequest *request) {
+        GUI.m_PictureInfo.request = request;
+        GUI.m_PictureInfo.strPictureName = "StandardPic";
+        GUI.m_getPictureCallback(GUI.m_PictureInfo);
+    });
+
+
+// void AsyncWebServerRequest::send(FS &fs, const String& path, const String& contentType, bool download, AwsTemplateProcessor callback){
+//   if(fs.exists(path) || (!download && fs.exists(path+".gz"))){
+//     send(beginResponse(fs, path, contentType, download, callback));
+//   } else send(404);
+// }
+
 
     //get file listing
     server.on(PSTR("/api/files/get"), HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -334,6 +360,17 @@ void webServer::bindAll()
             // Serial.printf("inputbutton:%d \n",dash.data.inputbutton);
 
         });
+
+    server.on(PSTR("/stream"), HTTP_GET, streamJpg);
+    server.on(PSTR("/capture"), HTTP_GET, sendJpg);
+    server.on(PSTR("/control"), HTTP_GET, setCameraVar);
+    /* setzten von Parametern
+    http://<ipaddr>/control?var=<parametername>&val=<wert>
+    
+    z.B. zum setzen der Bildgrösse auf VGA
+    http://192.168.178.55/control?var=framesize&val=8
+    */
+    server.on(PSTR("/status"), HTTP_GET, getCameraStatus);        
 }
 
 // Callback for the html

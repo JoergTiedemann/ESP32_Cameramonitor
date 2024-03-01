@@ -16,7 +16,7 @@
 #define SPI_SCK_PIN 14
 #define SPI_MISO_PIN 2
 #define SPI_MOSI_PIN 15
-#define SPI_CLOCK_IN_MHz 16
+#define SPI_CLOCK_IN_MHz 10
 #elif defined(ESP8266)
 #define SPI_CS_PIN 15
 #elif defined(MB_ARDUINO_PICO)
@@ -28,7 +28,7 @@
 #if defined(USE_SD_FAT_ESP32)
 
 // https://github.com/greiman/SdFat
-SdSpiConfig sdFatSPIConfig(SPI_CS_PIN, DEDICATED_SPI, SD_SCK_MHZ(SPI_CLOCK_IN_MHz));
+SdSpiConfig sdFatSPIConfig(SPI_CS_PIN,  USER_SPI_BEGIN | SHARED_SPI, SD_SCK_MHZ(SPI_CLOCK_IN_MHz),&SPI);
 
 #elif defined(ESP32) // if ESP32 and no SdFat library installed
 
