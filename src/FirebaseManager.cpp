@@ -59,7 +59,7 @@ void streamCallback(FirebaseStream data)
   if (result.typeNum == FirebaseJson::JSON_INT )
   {
     Serial.println("MaxOnTime:"+String(result.intValue));
-    configManager.data.MaxOnTime = result.intValue;
+    // configManager.data.MaxOnTime = result.intValue;
   }
 
   json->get(result,"PumpenFreigabe");
